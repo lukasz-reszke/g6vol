@@ -309,8 +309,13 @@ static class G6Vol
     // Sets every session on the device to its app's own level × gain.
     static void SyncSessions(float gain)
     {
+        // A session manager's list can go stale: after the device disappears and comes back,
+        // sessions Windows moves back onto it may never show up in the manager created when it
+        // reappeared, while a newly activated one lists them. So enumerate through a fresh one.
+        IMMDevice device;
+        enumerator.GetDevice(deviceId, out device);
         IAudioSessionEnumerator list;
-        sessions.GetSessionEnumerator(out list);
+        Activate<IAudioSessionManager2>(device).GetSessionEnumerator(out list);
         int count;
         list.GetCount(out count);
         var present = new HashSet<string>();
